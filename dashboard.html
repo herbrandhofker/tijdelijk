@@ -1,0 +1,4695 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SIB Isolatie - Lostock Fabric Dashboard</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --border-color: #334155;
+            --glow-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            font-weight: 800;
+            font-size: 20px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+            box-shadow: var(--glow-shadow);
+        }
+
+        .title-section h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(to right, #3b82f6, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-section p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 30px 40px;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+            opacity: 0.8;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #475569;
+            box-shadow: var(--glow-shadow);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-top: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        /* Visuals Grid */
+        .visuals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .visuals-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            height: 340px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-container-inner {
+            flex: 1;
+            position: relative;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Table & Controls Section */
+        .data-section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+        }
+
+        .filters-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .filter-select:focus {
+            border-color: var(--accent-purple);
+        }
+
+        /* Table Design */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 14px 16px;
+            background-color: rgba(15, 23, 42, 0.3);
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        tr {
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        tr:hover td {
+            background-color: rgba(51, 65, 85, 0.4);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-location {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-turbine {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fde047;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-sluiting {
+            background-color: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .page-btn {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--accent-blue);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Drawer / Slide-out Panel */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -550px;
+            width: 550px;
+            height: 100vh;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .drawer-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .detail-section h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-item {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .detail-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Drawing image styling */
+        .drawing-image-container {
+            width: 100%;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .drawing-img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            transition: transform 0.2s;
+            cursor: zoom-in;
+        }
+        
+        .drawing-img:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .drawing-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .drawing-btn:hover {
+            background-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo-badge">SIB</div>
+            <div class="title-section">
+                <h1>Lostock Fabric</h1>
+                <p>Interactief Dashboard & Inmeetoverzicht</p>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); display: flex; gap: 20px; align-items: center;">
+            <a href="Lostock Fabric JV+RdW.xlsx" class="page-btn" style="text-decoration: none; font-size: 11px; padding: 6px 12px;" download>Excel Downloaden</a>
+            <a href="audit_rapport.pdf" class="page-btn" style="text-decoration: none; font-size: 11px; padding: 6px 12px;" download>Audit PDF</a>
+            <span>Gebruiker: <strong>Ron de Wit</strong></span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Top Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Totaal Matrassen</div>
+                <div id="stat-total-qty" class="metric-value">0 stuks</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Totaal Oppervlakte</div>
+                <div id="stat-total-area" class="metric-value">0.00 m²</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Totaal Bedrag</div>
+                <div id="stat-total-price" class="metric-value">€ 0,00</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Totaal Gewicht</div>
+                <div id="stat-total-weight" class="metric-value">0.00 kg</div>
+            </div>
+        </div>
+
+        <!-- Visuals Grid -->
+        <div class="visuals-grid">
+            <div class="chart-card">
+                <h3>Matrassen per Verdieping</h3>
+                <div class="chart-container-inner">
+                    <canvas id="floorChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Verdeling per Sluitingstype</h3>
+                <div class="chart-container-inner">
+                    <canvas id="fastenerChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Section -->
+        <div class="data-section">
+            <div class="controls-row">
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-input" placeholder="Zoek op matrasnummer...">
+                </div>
+                <div class="filters-group">
+                    <select id="filter-verdieping" class="filter-select">
+                        <option value="">Alle Locaties</option>
+                    </select>
+                    <select id="filter-sluiting" class="filter-select">
+                        <option value="">Alle Sluitingen</option>
+                    </select>
+                    <select id="filter-inmeter" class="filter-select">
+                        <option value="">Alle Inmeters</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nr.</th>
+                            <th>Aantal</th>
+                            <th>Locatie / Verdieping</th>
+                            <th>Omvang (m)</th>
+                            <th>Hoogte (m)</th>
+                            <th>Sluiting</th>
+                            <th>Doek (B/O)</th>
+                            <th>Oppervl. (m²)</th>
+                            <th>Gewicht (kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <span id="page-info">Rij 1-15 van 168</span>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-prev" class="page-btn" disabled>Vorige</button>
+                    <button id="btn-next" class="page-btn">Volgende</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Drawer -->
+    <div id="drawer-overlay" class="overlay"></div>
+    <div id="detail-drawer" class="drawer">
+        <div class="drawer-header">
+            <div class="drawer-title" id="detail-number">Matras Details</div>
+            <button class="close-btn" id="btn-close-drawer">&times;</button>
+        </div>
+        
+        <div class="detail-section">
+            <h4>Algemene Informatie</h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Aantal</div>
+                    <div id="detail-qty" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Locatie</div>
+                    <div id="detail-loc" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Inmeter</div>
+                    <div id="detail-inmeter" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Inmeetdatum</div>
+                    <div id="detail-datum" class="detail-value">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>Inmeet Maten & Materialen</h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Inmeet Omvang</div>
+                    <div id="detail-omvang" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Inmeet Hoogte</div>
+                    <div id="detail-hoogte" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Bovendoek</div>
+                    <div id="detail-bovendoek" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Onderdoek</div>
+                    <div id="detail-onderdoek" class="detail-value">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>Calculaties & Productiematen</h4>
+            <div class="detail-grid">
+                <div class="detail-item" style="border-color: rgba(59, 130, 246, 0.4);">
+                    <div class="detail-label" style="color: #93c5fd;">Productie Omvang (+3cm)</div>
+                    <div id="detail-calc-omvang" class="detail-value" style="color: #93c5fd;">-</div>
+                </div>
+                <div class="detail-item" style="border-color: rgba(59, 130, 246, 0.4);">
+                    <div class="detail-label" style="color: #93c5fd;">Productie Hoogte (+3cm)</div>
+                    <div id="detail-calc-hoogte" class="detail-value" style="color: #93c5fd;">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Oppervlakte (Totaal)</div>
+                    <div id="detail-area" class="detail-value">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Totaal Gewicht</div>
+                    <div id="detail-weight" class="detail-value">-</div>
+                </div>
+                <div class="detail-item" style="grid-column: span 2; border-color: rgba(16, 185, 129, 0.4);">
+                    <div class="detail-label" style="color: #34d399;">Totaal Prijs (excl. BTW, incl. €2 labels)</div>
+                    <div id="detail-price" class="detail-value" style="color: #34d399; font-size: 15px;">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Drawing -->
+        <div class="detail-section" id="detail-drawing-section">
+            <h4 id="detail-drawing-title">Technische Tekening (Pagina -)</h4>
+            <div class="drawing-image-container">
+                <img id="detail-drawing-img" class="drawing-img" src="" alt="Geen tekening beschikbaar">
+                <button id="detail-drawing-btn" class="drawing-btn">Volledig Scherm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data embedded via script
+        const rawData = [
+  {
+    "id": 1,
+    "row": 4,
+    "number": "278",
+    "quantity": 2,
+    "omvang": 1.1,
+    "hoogte": 0.55,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.13,
+    "calc_hoogte": 0.58,
+    "area": 1.3108,
+    "total_price": 253.05,
+    "weight": 9.33,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 2,
+    "row": 5,
+    "number": "279",
+    "quantity": 2,
+    "omvang": 1.1,
+    "hoogte": 0.45,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.13,
+    "calc_hoogte": 0.48,
+    "area": 1.0848,
+    "total_price": 210.11,
+    "weight": 7.72,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 3,
+    "row": 6,
+    "number": "280",
+    "quantity": 2,
+    "omvang": 1.1,
+    "hoogte": 0.68,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.13,
+    "calc_hoogte": 0.71,
+    "area": 1.6046,
+    "total_price": 308.87,
+    "weight": 11.42,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 4,
+    "row": 7,
+    "number": "281",
+    "quantity": 1,
+    "omvang": 1.8,
+    "hoogte": 0.36,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.83,
+    "calc_hoogte": 0.39,
+    "area": 0.7137,
+    "total_price": 137.6,
+    "weight": 5.08,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 5,
+    "row": 8,
+    "number": "281",
+    "quantity": 1,
+    "omvang": 0.57,
+    "hoogte": 0.57,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.6,
+    "calc_hoogte": 0.6,
+    "area": 0.36,
+    "total_price": 70.4,
+    "weight": 2.56,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 6,
+    "row": 9,
+    "number": "282",
+    "quantity": 1,
+    "omvang": 0.36,
+    "hoogte": 0.3,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.33,
+    "area": 0.1287,
+    "total_price": 26.45,
+    "weight": 0.92,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 7,
+    "row": 10,
+    "number": "283",
+    "quantity": 1,
+    "omvang": 0.36,
+    "hoogte": 0.26,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.29,
+    "area": 0.1131,
+    "total_price": 23.49,
+    "weight": 0.81,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 8,
+    "row": 11,
+    "number": "284",
+    "quantity": 1,
+    "omvang": 0.36,
+    "hoogte": 0.46,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.49,
+    "area": 0.1911,
+    "total_price": 38.31,
+    "weight": 1.36,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 9,
+    "row": 12,
+    "number": "285",
+    "quantity": 2,
+    "omvang": 0.66,
+    "hoogte": 0.28,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.31,
+    "area": 0.4278,
+    "total_price": 85.28,
+    "weight": 3.05,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 10,
+    "row": 13,
+    "number": "286",
+    "quantity": 1,
+    "omvang": 1.36,
+    "hoogte": 0.65,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.39,
+    "calc_hoogte": 0.68,
+    "area": 0.9452,
+    "total_price": 181.59,
+    "weight": 6.73,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 11,
+    "row": 14,
+    "number": "287",
+    "quantity": 1,
+    "omvang": 1.36,
+    "hoogte": 0.66,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.39,
+    "calc_hoogte": 0.69,
+    "area": 0.9591,
+    "total_price": 184.23,
+    "weight": 6.83,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 12,
+    "row": 15,
+    "number": "288",
+    "quantity": 1,
+    "omvang": 0.4,
+    "hoogte": 0.48,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.43,
+    "calc_hoogte": 0.51,
+    "area": 0.2193,
+    "total_price": 43.67,
+    "weight": 1.56,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 13,
+    "row": 16,
+    "number": "289",
+    "quantity": 2,
+    "omvang": 0.31,
+    "hoogte": 0.74,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.34,
+    "calc_hoogte": 0.77,
+    "area": 0.5236,
+    "total_price": 103.48,
+    "weight": 3.73,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 14,
+    "row": 17,
+    "number": "290",
+    "quantity": 1,
+    "omvang": 0.43,
+    "hoogte": 0.28,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.46,
+    "calc_hoogte": 0.31,
+    "area": 0.1426,
+    "total_price": 29.09,
+    "weight": 1.02,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 15,
+    "row": 18,
+    "number": "291",
+    "quantity": 1,
+    "omvang": 2.28,
+    "hoogte": 0.47,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 2.31,
+    "calc_hoogte": 0.5,
+    "area": 1.155,
+    "total_price": 221.45,
+    "weight": 8.22,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 16,
+    "row": 19,
+    "number": "291",
+    "quantity": 1,
+    "omvang": 0.73,
+    "hoogte": 0.73,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.76,
+    "calc_hoogte": 0.76,
+    "area": 0.5776,
+    "total_price": 111.74,
+    "weight": 4.11,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 17,
+    "row": 20,
+    "number": "292",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.45,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.48,
+    "area": 0.3744,
+    "total_price": 75.14,
+    "weight": 2.67,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 18,
+    "row": 21,
+    "number": "293",
+    "quantity": 3,
+    "omvang": 0.66,
+    "hoogte": 0.33,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.36,
+    "area": 0.7452,
+    "total_price": 147.59,
+    "weight": 5.31,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 19,
+    "row": 22,
+    "number": "294",
+    "quantity": 1,
+    "omvang": 1.5,
+    "hoogte": 0.3,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.53,
+    "calc_hoogte": 0.33,
+    "area": 0.5049,
+    "total_price": 97.93,
+    "weight": 3.59,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 22,
+    "page_str": "022"
+  },
+  {
+    "id": 20,
+    "row": 23,
+    "number": "294",
+    "quantity": 1,
+    "omvang": 0.48,
+    "hoogte": 0.48,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.51,
+    "calc_hoogte": 0.51,
+    "area": 0.2601,
+    "total_price": 51.42,
+    "weight": 1.85,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 22,
+    "page_str": "022"
+  },
+  {
+    "id": 21,
+    "row": 24,
+    "number": "295",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.37,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.4,
+    "area": 0.312,
+    "total_price": 63.28,
+    "weight": 2.22,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 22,
+    "row": 25,
+    "number": "296",
+    "quantity": 1,
+    "omvang": 1.5,
+    "hoogte": 0.9,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.53,
+    "calc_hoogte": 0.93,
+    "area": 1.4229,
+    "total_price": 272.35,
+    "weight": 10.13,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 23,
+    "row": 26,
+    "number": "297",
+    "quantity": 1,
+    "omvang": 1.58,
+    "hoogte": 0.38,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.61,
+    "calc_hoogte": 0.41,
+    "area": 0.6601,
+    "total_price": 127.42,
+    "weight": 4.7,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 24,
+    "row": 27,
+    "number": "298",
+    "quantity": 1,
+    "omvang": 2.28,
+    "hoogte": 0.46,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 2.31,
+    "calc_hoogte": 0.49,
+    "area": 1.1319,
+    "total_price": 217.06,
+    "weight": 8.06,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 25,
+    "row": 28,
+    "number": "298",
+    "quantity": 1,
+    "omvang": 0.73,
+    "hoogte": 0.73,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.76,
+    "calc_hoogte": 0.76,
+    "area": 0.5776,
+    "total_price": 111.74,
+    "weight": 4.11,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 26,
+    "row": 29,
+    "number": "299",
+    "quantity": 2,
+    "omvang": 1.25,
+    "hoogte": 0.28,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.28,
+    "calc_hoogte": 0.31,
+    "area": 0.7936,
+    "total_price": 154.78,
+    "weight": 5.65,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 27,
+    "row": 30,
+    "number": "300",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.32,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.35,
+    "area": 0.273,
+    "total_price": 55.87,
+    "weight": 1.94,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 28,
+    "row": 31,
+    "number": "301",
+    "quantity": 1,
+    "omvang": 2.21,
+    "hoogte": 0.43,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 2.24,
+    "calc_hoogte": 0.46,
+    "area": 1.0304,
+    "total_price": 197.78,
+    "weight": 7.34,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 29,
+    "row": 32,
+    "number": "301",
+    "quantity": 1,
+    "omvang": 0.7,
+    "hoogte": 0.7,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.73,
+    "calc_hoogte": 0.73,
+    "area": 0.5329,
+    "total_price": 103.25,
+    "weight": 3.79,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 30,
+    "row": 33,
+    "number": "302",
+    "quantity": 2,
+    "omvang": 1.07,
+    "hoogte": 0.26,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.1,
+    "calc_hoogte": 0.29,
+    "area": 0.638,
+    "total_price": 125.22,
+    "weight": 4.54,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 31,
+    "row": 34,
+    "number": "302",
+    "quantity": 2,
+    "omvang": 0.34,
+    "hoogte": 0.34,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.37,
+    "calc_hoogte": 0.37,
+    "area": 0.2738,
+    "total_price": 56.02,
+    "weight": 1.95,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 32,
+    "row": 35,
+    "number": "303",
+    "quantity": 1,
+    "omvang": 2.22,
+    "hoogte": 0.88,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 2.25,
+    "calc_hoogte": 0.91,
+    "area": 2.0475,
+    "total_price": 391.02,
+    "weight": 14.58,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/0",
+    "onderdoek": "N/A",
+    "page": 20,
+    "page_str": "020"
+  },
+  {
+    "id": 33,
+    "row": 36,
+    "number": "303",
+    "quantity": 2,
+    "omvang": 0.71,
+    "hoogte": 0.71,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.74,
+    "calc_hoogte": 0.74,
+    "area": 1.0952,
+    "total_price": 212.09,
+    "weight": 7.8,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/0",
+    "onderdoek": "N/A",
+    "page": 20,
+    "page_str": "020"
+  },
+  {
+    "id": 34,
+    "row": 37,
+    "number": "304",
+    "quantity": 2,
+    "omvang": 2.22,
+    "hoogte": 0.38,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 2.25,
+    "calc_hoogte": 0.41,
+    "area": 1.845,
+    "total_price": 354.55,
+    "weight": 13.14,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "4g",
+    "onderdoek": "N/A",
+    "page": 102,
+    "page_str": "102"
+  },
+  {
+    "id": 35,
+    "row": 38,
+    "number": "305",
+    "quantity": 1,
+    "omvang": 1.06,
+    "hoogte": 0.5,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.09,
+    "calc_hoogte": 0.53,
+    "area": 0.5777,
+    "total_price": 111.76,
+    "weight": 4.11,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 36,
+    "row": 39,
+    "number": "306",
+    "quantity": 1,
+    "omvang": 1.07,
+    "hoogte": 0.28,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.1,
+    "calc_hoogte": 0.31,
+    "area": 0.341,
+    "total_price": 66.79,
+    "weight": 2.43,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 37,
+    "row": 40,
+    "number": "306",
+    "quantity": 1,
+    "omvang": 0.34,
+    "hoogte": 0.34,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.37,
+    "calc_hoogte": 0.37,
+    "area": 0.1369,
+    "total_price": 28.01,
+    "weight": 0.97,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 38,
+    "row": 41,
+    "number": "308",
+    "quantity": 1,
+    "omvang": 1.07,
+    "hoogte": 0.25,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.1,
+    "calc_hoogte": 0.28,
+    "area": 0.308,
+    "total_price": 60.52,
+    "weight": 2.19,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 39,
+    "row": 42,
+    "number": "309",
+    "quantity": 1,
+    "omvang": 1.82,
+    "hoogte": 0.29,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.85,
+    "calc_hoogte": 0.32,
+    "area": 0.592,
+    "total_price": 114.48,
+    "weight": 4.22,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 40,
+    "row": 43,
+    "number": "309",
+    "quantity": 1,
+    "omvang": 0.58,
+    "hoogte": 0.58,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.61,
+    "calc_hoogte": 0.61,
+    "area": 0.3721,
+    "total_price": 72.7,
+    "weight": 2.65,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 41,
+    "row": 44,
+    "number": "310",
+    "quantity": 1,
+    "omvang": 0.36,
+    "hoogte": 0.72,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.75,
+    "area": 0.2925,
+    "total_price": 57.57,
+    "weight": 2.08,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 42,
+    "row": 45,
+    "number": "311",
+    "quantity": 2,
+    "omvang": 0.66,
+    "hoogte": 0.38,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.41,
+    "area": 0.5658,
+    "total_price": 111.5,
+    "weight": 4.03,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 43,
+    "row": 46,
+    "number": "312",
+    "quantity": 1,
+    "omvang": 0.36,
+    "hoogte": 0.15,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.18,
+    "area": 0.0702,
+    "total_price": 15.34,
+    "weight": 0.5,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 44,
+    "row": 47,
+    "number": "313",
+    "quantity": 1,
+    "omvang": 0.36,
+    "hoogte": 0.46,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.49,
+    "area": 0.1911,
+    "total_price": 38.31,
+    "weight": 1.36,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 45,
+    "row": 48,
+    "number": "314",
+    "quantity": 1,
+    "omvang": 0.66,
+    "hoogte": 0.58,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.61,
+    "area": 0.4209,
+    "total_price": 81.97,
+    "weight": 3.0,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 46,
+    "row": 49,
+    "number": "315",
+    "quantity": 2,
+    "omvang": 1.8,
+    "hoogte": 0.5,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.83,
+    "calc_hoogte": 0.53,
+    "area": 1.9398,
+    "total_price": 372.56,
+    "weight": 13.81,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 47,
+    "row": 50,
+    "number": "315",
+    "quantity": 2,
+    "omvang": 0.57,
+    "hoogte": 0.57,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.6,
+    "calc_hoogte": 0.6,
+    "area": 0.72,
+    "total_price": 140.8,
+    "weight": 5.13,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 48,
+    "row": 51,
+    "number": "316",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.46,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.49,
+    "area": 0.3822,
+    "total_price": 76.62,
+    "weight": 2.72,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 49,
+    "row": 52,
+    "number": "317",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.16,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.19,
+    "area": 0.1482,
+    "total_price": 32.16,
+    "weight": 1.06,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 50,
+    "row": 53,
+    "number": "318",
+    "quantity": 2,
+    "omvang": 0.66,
+    "hoogte": 0.18,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.21,
+    "area": 0.2898,
+    "total_price": 59.06,
+    "weight": 2.06,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 51,
+    "row": 54,
+    "number": "318",
+    "quantity": 2,
+    "omvang": 0.21,
+    "hoogte": 0.21,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.24,
+    "calc_hoogte": 0.24,
+    "area": 0.1152,
+    "total_price": 25.89,
+    "weight": 0.82,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 52,
+    "row": 55,
+    "number": "320",
+    "quantity": 1,
+    "omvang": 1.75,
+    "hoogte": 0.4,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.78,
+    "calc_hoogte": 0.43,
+    "area": 0.7654,
+    "total_price": 147.43,
+    "weight": 5.45,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 53,
+    "row": 56,
+    "number": "320",
+    "quantity": 1,
+    "omvang": 0.56,
+    "hoogte": 0.56,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.59,
+    "calc_hoogte": 0.59,
+    "area": 0.3481,
+    "total_price": 68.14,
+    "weight": 2.48,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 54,
+    "row": 57,
+    "number": "322",
+    "quantity": 1,
+    "omvang": 1.81,
+    "hoogte": 0.54,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.84,
+    "calc_hoogte": 0.57,
+    "area": 1.0488,
+    "total_price": 201.27,
+    "weight": 7.47,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 55,
+    "row": 58,
+    "number": "322",
+    "quantity": 1,
+    "omvang": 0.58,
+    "hoogte": 0.58,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.61,
+    "calc_hoogte": 0.61,
+    "area": 0.3721,
+    "total_price": 72.7,
+    "weight": 2.65,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 56,
+    "row": 59,
+    "number": "323",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.26,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.29,
+    "area": 0.2262,
+    "total_price": 46.98,
+    "weight": 1.61,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 57,
+    "row": 60,
+    "number": "324",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.32,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.35,
+    "area": 0.273,
+    "total_price": 55.87,
+    "weight": 1.94,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 58,
+    "row": 61,
+    "number": "325",
+    "quantity": 2,
+    "omvang": 0.36,
+    "hoogte": 0.46,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.49,
+    "area": 0.3822,
+    "total_price": 76.62,
+    "weight": 2.72,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 59,
+    "row": 62,
+    "number": "326",
+    "quantity": 4,
+    "omvang": 0.66,
+    "hoogte": 0.25,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.28,
+    "area": 0.7728,
+    "total_price": 154.83,
+    "weight": 5.5,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 60,
+    "row": 63,
+    "number": "327",
+    "quantity": 4,
+    "omvang": 1.78,
+    "hoogte": 0.51,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.81,
+    "calc_hoogte": 0.54,
+    "area": 3.9096,
+    "total_price": 750.82,
+    "weight": 27.84,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 61,
+    "row": 64,
+    "number": "328",
+    "quantity": 1,
+    "omvang": 1.25,
+    "hoogte": 1.12,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.28,
+    "calc_hoogte": 1.15,
+    "area": 1.472,
+    "total_price": 281.68,
+    "weight": 10.48,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 62,
+    "row": 65,
+    "number": "329",
+    "quantity": 1,
+    "omvang": 1.25,
+    "hoogte": 0.32,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.28,
+    "calc_hoogte": 0.35,
+    "area": 0.448,
+    "total_price": 87.12,
+    "weight": 3.19,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 41,
+    "page_str": "041"
+  },
+  {
+    "id": 63,
+    "row": 66,
+    "number": "329",
+    "quantity": 1,
+    "omvang": 0.4,
+    "hoogte": 0.4,
+    "gesp_haken": "G/H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.43,
+    "calc_hoogte": 0.43,
+    "area": 0.1849,
+    "total_price": 37.13,
+    "weight": 1.32,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 41,
+    "page_str": "041"
+  },
+  {
+    "id": 64,
+    "row": 67,
+    "number": "330",
+    "quantity": 4,
+    "omvang": 2.13,
+    "hoogte": 0.96,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 2.16,
+    "calc_hoogte": 0.99,
+    "area": 8.5536,
+    "total_price": 1633.18,
+    "weight": 60.9,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 132,
+    "page_str": "132"
+  },
+  {
+    "id": 65,
+    "row": 68,
+    "number": "331",
+    "quantity": 1,
+    "omvang": 1.07,
+    "hoogte": 0.3,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 1.1,
+    "calc_hoogte": 0.33,
+    "area": 0.363,
+    "total_price": 70.97,
+    "weight": 2.58,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 66,
+    "row": 69,
+    "number": "331",
+    "quantity": 1,
+    "omvang": 0.34,
+    "hoogte": 0.34,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.37,
+    "calc_hoogte": 0.37,
+    "area": 0.1369,
+    "total_price": 28.01,
+    "weight": 0.97,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 67,
+    "row": 70,
+    "number": "332",
+    "quantity": 1,
+    "omvang": 0.66,
+    "hoogte": 0.34,
+    "gesp_haken": "H",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.37,
+    "area": 0.2553,
+    "total_price": 50.51,
+    "weight": 1.82,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "5 Zs",
+    "onderdoek": "N/A",
+    "page": 144,
+    "page_str": "144"
+  },
+  {
+    "id": 68,
+    "row": 71,
+    "number": "333",
+    "quantity": 1,
+    "omvang": 0.75,
+    "hoogte": 0.32,
+    "gesp_haken": "G",
+    "location": "Turbine Hall",
+    "calc_omvang": 0.78,
+    "calc_hoogte": 0.35,
+    "area": 0.273,
+    "total_price": 53.87,
+    "weight": 1.94,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 69,
+    "row": 72,
+    "number": "1",
+    "quantity": 12,
+    "omvang": 0.66,
+    "hoogte": 0.29,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.32,
+    "area": 2.6496,
+    "total_price": 527.42,
+    "weight": 18.87,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 70,
+    "row": 73,
+    "number": "2",
+    "quantity": 24,
+    "omvang": 1.03,
+    "hoogte": 0.28,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 1.06,
+    "calc_hoogte": 0.31,
+    "area": 7.8864,
+    "total_price": 1546.42,
+    "weight": 56.15,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 71,
+    "row": 74,
+    "number": "2",
+    "quantity": 24,
+    "omvang": 0.33,
+    "hoogte": 0.33,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.36,
+    "calc_hoogte": 0.36,
+    "area": 3.1104,
+    "total_price": 638.98,
+    "weight": 22.15,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 72,
+    "row": 75,
+    "number": "3",
+    "quantity": 36,
+    "omvang": 0.72,
+    "hoogte": 0.14,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.75,
+    "calc_hoogte": 0.17,
+    "area": 4.59,
+    "total_price": 944.1,
+    "weight": 32.68,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "be",
+    "onderdoek": "N/A",
+    "page": 3,
+    "page_str": "003"
+  },
+  {
+    "id": 73,
+    "row": 76,
+    "number": "3",
+    "quantity": 36,
+    "omvang": 0.23,
+    "hoogte": 0.23,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.26,
+    "calc_hoogte": 0.26,
+    "area": 2.4336,
+    "total_price": 534.38,
+    "weight": 17.33,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "be",
+    "onderdoek": "N/A",
+    "page": 3,
+    "page_str": "003"
+  },
+  {
+    "id": 74,
+    "row": 77,
+    "number": "4",
+    "quantity": 12,
+    "omvang": 0.75,
+    "hoogte": 0.32,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.78,
+    "calc_hoogte": 0.35,
+    "area": 3.276,
+    "total_price": 646.44,
+    "weight": 23.33,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 75,
+    "row": 78,
+    "number": "5",
+    "quantity": 36,
+    "omvang": 0.7,
+    "hoogte": 0.56,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.73,
+    "calc_hoogte": 0.59,
+    "area": 15.5052,
+    "total_price": 3017.99,
+    "weight": 110.4,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 76,
+    "row": 79,
+    "number": "6",
+    "quantity": 12,
+    "omvang": 1.03,
+    "hoogte": 0.32,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 1.06,
+    "calc_hoogte": 0.35,
+    "area": 4.452,
+    "total_price": 869.88,
+    "weight": 31.7,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 77,
+    "row": 80,
+    "number": "7",
+    "quantity": 12,
+    "omvang": 2.57,
+    "hoogte": 0.36,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 2.6,
+    "calc_hoogte": 0.39,
+    "area": 12.168,
+    "total_price": 2335.92,
+    "weight": 86.64,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 56,
+    "page_str": "056"
+  },
+  {
+    "id": 78,
+    "row": 81,
+    "number": "7",
+    "quantity": 12,
+    "omvang": 0.82,
+    "hoogte": 0.82,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.85,
+    "calc_hoogte": 0.85,
+    "area": 8.67,
+    "total_price": 1671.3,
+    "weight": 61.73,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 56,
+    "page_str": "056"
+  },
+  {
+    "id": 79,
+    "row": 82,
+    "number": "8",
+    "quantity": 12,
+    "omvang": 2.91,
+    "hoogte": 0.58,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 2.94,
+    "calc_hoogte": 0.61,
+    "area": 21.5208,
+    "total_price": 4112.95,
+    "weight": 153.23,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 80,
+    "row": 83,
+    "number": "9",
+    "quantity": 16,
+    "omvang": 0.75,
+    "hoogte": 0.28,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.78,
+    "calc_hoogte": 0.31,
+    "area": 3.8688,
+    "total_price": 767.07,
+    "weight": 27.55,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 37,
+    "page_str": "037"
+  },
+  {
+    "id": 81,
+    "row": 84,
+    "number": "10",
+    "quantity": 16,
+    "omvang": 1.05,
+    "hoogte": 0.28,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 1.08,
+    "calc_hoogte": 0.31,
+    "area": 5.3568,
+    "total_price": 1049.79,
+    "weight": 38.14,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 82,
+    "row": 85,
+    "number": "10",
+    "quantity": 16,
+    "omvang": 0.33,
+    "hoogte": 0.33,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.36,
+    "calc_hoogte": 0.36,
+    "area": 2.0736,
+    "total_price": 425.98,
+    "weight": 14.76,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 83,
+    "row": 86,
+    "number": "11",
+    "quantity": 16,
+    "omvang": 1.08,
+    "hoogte": 0.28,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 1.11,
+    "calc_hoogte": 0.31,
+    "area": 5.5056,
+    "total_price": 1078.06,
+    "weight": 39.2,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 84,
+    "row": 87,
+    "number": "11",
+    "quantity": 16,
+    "omvang": 0.34,
+    "hoogte": 0.34,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.37,
+    "calc_hoogte": 0.37,
+    "area": 2.1904,
+    "total_price": 448.18,
+    "weight": 15.6,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 85,
+    "row": 88,
+    "number": "12",
+    "quantity": 16,
+    "omvang": 2.83,
+    "hoogte": 0.56,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 2.86,
+    "calc_hoogte": 0.59,
+    "area": 26.9984,
+    "total_price": 5161.7,
+    "weight": 192.23,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 86,
+    "row": 89,
+    "number": "12",
+    "quantity": 16,
+    "omvang": 0.9,
+    "hoogte": 0.9,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.93,
+    "calc_hoogte": 0.93,
+    "area": 13.8384,
+    "total_price": 2661.3,
+    "weight": 98.53,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 87,
+    "row": 90,
+    "number": "13",
+    "quantity": 24,
+    "omvang": 2.49,
+    "hoogte": 0.52,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 2.52,
+    "calc_hoogte": 0.55,
+    "area": 33.264,
+    "total_price": 6368.16,
+    "weight": 236.84,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 88,
+    "row": 91,
+    "number": "14",
+    "quantity": 8,
+    "omvang": 2.83,
+    "hoogte": 0.52,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 2.86,
+    "calc_hoogte": 0.55,
+    "area": 12.584,
+    "total_price": 2406.96,
+    "weight": 89.6,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 89,
+    "row": 92,
+    "number": "14",
+    "quantity": 8,
+    "omvang": 0.9,
+    "hoogte": 0.9,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.93,
+    "calc_hoogte": 0.93,
+    "area": 6.9192,
+    "total_price": 1330.65,
+    "weight": 49.26,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 90,
+    "row": 93,
+    "number": "15",
+    "quantity": 8,
+    "omvang": 0.77,
+    "hoogte": 0.89,
+    "gesp_haken": "H",
+    "location": "N/A",
+    "calc_omvang": 0.8,
+    "calc_hoogte": 0.92,
+    "area": 5.888,
+    "total_price": 1134.72,
+    "weight": 41.92,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 91,
+    "row": 94,
+    "number": "16",
+    "quantity": 4,
+    "omvang": 0.33,
+    "hoogte": 0.33,
+    "gesp_haken": "H",
+    "location": "N/A",
+    "calc_omvang": 0.36,
+    "calc_hoogte": 0.36,
+    "area": 0.5184,
+    "total_price": 106.5,
+    "weight": 3.69,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 92,
+    "row": 95,
+    "number": "17",
+    "quantity": 8,
+    "omvang": 0.35,
+    "hoogte": 0.4,
+    "gesp_haken": "H",
+    "location": "N/A",
+    "calc_omvang": 0.38,
+    "calc_hoogte": 0.43,
+    "area": 1.3072,
+    "total_price": 264.37,
+    "weight": 9.31,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 93,
+    "row": 96,
+    "number": "18",
+    "quantity": 3,
+    "omvang": 1.08,
+    "hoogte": 0.25,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 1.11,
+    "calc_hoogte": 0.28,
+    "area": 0.9324,
+    "total_price": 183.16,
+    "weight": 6.64,
+    "verdieping": "Ground Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "YS",
+    "onderdoek": "N/A",
+    "page": 103,
+    "page_str": "103"
+  },
+  {
+    "id": 94,
+    "row": 97,
+    "number": "18",
+    "quantity": 3,
+    "omvang": 0.34,
+    "hoogte": 0.34,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.37,
+    "calc_hoogte": 0.37,
+    "area": 0.4107,
+    "total_price": 84.03,
+    "weight": 2.92,
+    "verdieping": "Ground Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "YS",
+    "onderdoek": "N/A",
+    "page": 103,
+    "page_str": "103"
+  },
+  {
+    "id": 95,
+    "row": 98,
+    "number": "19",
+    "quantity": 3,
+    "omvang": 0.66,
+    "hoogte": 0.14,
+    "gesp_haken": "H",
+    "location": "N/A",
+    "calc_omvang": 0.69,
+    "calc_hoogte": 0.17,
+    "area": 0.3519,
+    "total_price": 72.86,
+    "weight": 2.51,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/0",
+    "onderdoek": "N/A",
+    "page": 20,
+    "page_str": "020"
+  },
+  {
+    "id": 96,
+    "row": 99,
+    "number": "20",
+    "quantity": 3,
+    "omvang": 1.08,
+    "hoogte": 0.25,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 1.11,
+    "calc_hoogte": 0.28,
+    "area": 0.9324,
+    "total_price": 183.16,
+    "weight": 6.64,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/0",
+    "onderdoek": "N/A",
+    "page": 20,
+    "page_str": "020"
+  },
+  {
+    "id": 97,
+    "row": 100,
+    "number": "20",
+    "quantity": 3,
+    "omvang": 0.34,
+    "hoogte": 0.34,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.37,
+    "calc_hoogte": 0.37,
+    "area": 0.4107,
+    "total_price": 84.03,
+    "weight": 2.92,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/0",
+    "onderdoek": "N/A",
+    "page": 20,
+    "page_str": "020"
+  },
+  {
+    "id": 98,
+    "row": 101,
+    "number": "21",
+    "quantity": 1,
+    "omvang": 0.74,
+    "hoogte": 0.34,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.77,
+    "calc_hoogte": 0.37,
+    "area": 0.2849,
+    "total_price": 56.13,
+    "weight": 2.03,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 99,
+    "row": 102,
+    "number": "22",
+    "quantity": 8,
+    "omvang": 0.88,
+    "hoogte": 0.2,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.91,
+    "calc_hoogte": 0.23,
+    "area": 1.6744,
+    "total_price": 334.14,
+    "weight": 11.92,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 22,
+    "page_str": "022"
+  },
+  {
+    "id": 100,
+    "row": 103,
+    "number": "22",
+    "quantity": 8,
+    "omvang": 0.28,
+    "hoogte": 0.28,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.31,
+    "calc_hoogte": 0.31,
+    "area": 0.7688,
+    "total_price": 162.07,
+    "weight": 5.47,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 22,
+    "page_str": "022"
+  },
+  {
+    "id": 101,
+    "row": 104,
+    "number": "23",
+    "quantity": 5,
+    "omvang": 0.75,
+    "hoogte": 0.3,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.78,
+    "calc_hoogte": 0.33,
+    "area": 1.287,
+    "total_price": 254.53,
+    "weight": 9.16,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 102,
+    "row": 105,
+    "number": "24",
+    "quantity": 4,
+    "omvang": 0.55,
+    "hoogte": 0.6,
+    "gesp_haken": "H",
+    "location": "N/A",
+    "calc_omvang": 0.58,
+    "calc_hoogte": 0.63,
+    "area": 1.4616,
+    "total_price": 285.7,
+    "weight": 10.41,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 103,
+    "row": 106,
+    "number": "25",
+    "quantity": 1,
+    "omvang": 0.8,
+    "hoogte": 0.36,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.83,
+    "calc_hoogte": 0.39,
+    "area": 0.3237,
+    "total_price": 63.5,
+    "weight": 2.3,
+    "verdieping": "2nd Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 87,
+    "page_str": "087"
+  },
+  {
+    "id": 104,
+    "row": 107,
+    "number": "26",
+    "quantity": 1,
+    "omvang": 0.59,
+    "hoogte": 0.25,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.62,
+    "calc_hoogte": 0.28,
+    "area": 0.1736,
+    "total_price": 34.98,
+    "weight": 1.24,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 112,
+    "page_str": "112"
+  },
+  {
+    "id": 105,
+    "row": 108,
+    "number": "27",
+    "quantity": 1,
+    "omvang": 0.61,
+    "hoogte": 0.13,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.64,
+    "calc_hoogte": 0.16,
+    "area": 0.1024,
+    "total_price": 21.46,
+    "weight": 0.73,
+    "verdieping": "Ground Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "4g",
+    "onderdoek": "N/A",
+    "page": 102,
+    "page_str": "102"
+  },
+  {
+    "id": 106,
+    "row": 109,
+    "number": "28",
+    "quantity": 1,
+    "omvang": 2.66,
+    "hoogte": 1.0,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 2.69,
+    "calc_hoogte": 1.03,
+    "area": 2.7707,
+    "total_price": 528.43,
+    "weight": 19.73,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 54,
+    "page_str": "054"
+  },
+  {
+    "id": 107,
+    "row": 110,
+    "number": "29",
+    "quantity": 2,
+    "omvang": 0.28,
+    "hoogte": 0.23,
+    "gesp_haken": "G",
+    "location": "N/A",
+    "calc_omvang": 0.31,
+    "calc_hoogte": 0.26,
+    "area": 0.1612,
+    "total_price": 34.63,
+    "weight": 1.15,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  },
+  {
+    "id": 108,
+    "row": 111,
+    "number": "30",
+    "quantity": 2,
+    "omvang": 0.72,
+    "hoogte": 0.79,
+    "gesp_haken": "H",
+    "location": "N/A",
+    "calc_omvang": 0.75,
+    "calc_hoogte": 0.82,
+    "area": 1.23,
+    "total_price": 237.7,
+    "weight": 8.76,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "/2",
+    "onderdoek": "N/A",
+    "page": 109,
+    "page_str": "109"
+  },
+  {
+    "id": 109,
+    "row": 112,
+    "number": "30",
+    "quantity": 2,
+    "omvang": 0.23,
+    "hoogte": 0.23,
+    "gesp_haken": "G/H",
+    "location": "N/A",
+    "calc_omvang": 0.26,
+    "calc_hoogte": 0.26,
+    "area": 0.1352,
+    "total_price": 29.69,
+    "weight": 0.96,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "/2",
+    "onderdoek": "N/A",
+    "page": 109,
+    "page_str": "109"
+  },
+  {
+    "id": 110,
+    "row": 113,
+    "number": "31",
+    "quantity": 1,
+    "omvang": 0.47,
+    "hoogte": 0.35,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.5,
+    "calc_hoogte": 0.38,
+    "area": 0.19,
+    "total_price": 38.1,
+    "weight": 1.35,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 111,
+    "row": 114,
+    "number": "32",
+    "quantity": 1,
+    "omvang": 0.4,
+    "hoogte": 0.4,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.43,
+    "calc_hoogte": 0.43,
+    "area": 0.1849,
+    "total_price": 37.13,
+    "weight": 1.32,
+    "verdieping": "2 1/2 Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 85,
+    "page_str": "085"
+  },
+  {
+    "id": 112,
+    "row": 115,
+    "number": "33",
+    "quantity": 1,
+    "omvang": 0.45,
+    "hoogte": 0.41,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.48,
+    "calc_hoogte": 0.44,
+    "area": 0.2112,
+    "total_price": 42.13,
+    "weight": 1.5,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 37,
+    "page_str": "037"
+  },
+  {
+    "id": 113,
+    "row": 116,
+    "number": "34",
+    "quantity": 1,
+    "omvang": 0.41,
+    "hoogte": 0.41,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.44,
+    "calc_hoogte": 0.44,
+    "area": 0.1936,
+    "total_price": 38.78,
+    "weight": 1.38,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 114,
+    "row": 117,
+    "number": "35",
+    "quantity": 1,
+    "omvang": 0.41,
+    "hoogte": 0.41,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.44,
+    "calc_hoogte": 0.44,
+    "area": 0.1936,
+    "total_price": 38.78,
+    "weight": 1.38,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 115,
+    "row": 118,
+    "number": "36",
+    "quantity": 1,
+    "omvang": 0.4,
+    "hoogte": 0.4,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.43,
+    "calc_hoogte": 0.43,
+    "area": 0.1849,
+    "total_price": 37.13,
+    "weight": 1.32,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 116,
+    "row": 119,
+    "number": "37",
+    "quantity": 1,
+    "omvang": 0.45,
+    "hoogte": 0.41,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.48,
+    "calc_hoogte": 0.44,
+    "area": 0.2112,
+    "total_price": 42.13,
+    "weight": 1.5,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 37,
+    "page_str": "037"
+  },
+  {
+    "id": 117,
+    "row": 120,
+    "number": "38",
+    "quantity": 1,
+    "omvang": 0.38,
+    "hoogte": 0.4,
+    "gesp_haken": "NO G&H",
+    "location": "N/A",
+    "calc_omvang": 0.41,
+    "calc_hoogte": 0.43,
+    "area": 0.1763,
+    "total_price": 35.5,
+    "weight": 1.26,
+    "verdieping": "Ground Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "4g",
+    "onderdoek": "N/A",
+    "page": 102,
+    "page_str": "102"
+  },
+  {
+    "id": 118,
+    "row": 121,
+    "number": "39",
+    "quantity": 16,
+    "omvang": 0.83,
+    "hoogte": 0.21,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.86,
+    "calc_hoogte": 0.24,
+    "area": 3.3024,
+    "total_price": 659.46,
+    "weight": 23.51,
+    "verdieping": "Ground Floor",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "5 Zs",
+    "onderdoek": "N/A",
+    "page": 144,
+    "page_str": "144"
+  },
+  {
+    "id": 119,
+    "row": 122,
+    "number": "39",
+    "quantity": 16,
+    "omvang": 0.26,
+    "hoogte": 0.26,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.29,
+    "calc_hoogte": 0.29,
+    "area": 1.3456,
+    "total_price": 287.66,
+    "weight": 9.58,
+    "verdieping": "Ground Floor",
+    "datum": "12-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "5 Zs",
+    "onderdoek": "N/A",
+    "page": 144,
+    "page_str": "144"
+  },
+  {
+    "id": 120,
+    "row": 123,
+    "number": "40",
+    "quantity": 4,
+    "omvang": 0.9,
+    "hoogte": 0.9,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.93,
+    "calc_hoogte": 0.93,
+    "area": 3.4596,
+    "total_price": 665.32,
+    "weight": 24.63,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 121,
+    "row": 124,
+    "number": "41",
+    "quantity": 4,
+    "omvang": 1.67,
+    "hoogte": 0.89,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.7,
+    "calc_hoogte": 0.92,
+    "area": 6.256,
+    "total_price": 1196.64,
+    "weight": 44.54,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 41,
+    "page_str": "041"
+  },
+  {
+    "id": 122,
+    "row": 125,
+    "number": "41",
+    "quantity": 4,
+    "omvang": 0.53,
+    "hoogte": 0.53,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.56,
+    "calc_hoogte": 0.56,
+    "area": 1.2544,
+    "total_price": 246.34,
+    "weight": 8.93,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 41,
+    "page_str": "041"
+  },
+  {
+    "id": 123,
+    "row": 126,
+    "number": "42",
+    "quantity": 8,
+    "omvang": 1.04,
+    "hoogte": 0.37,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.07,
+    "calc_hoogte": 0.4,
+    "area": 3.424,
+    "total_price": 666.56,
+    "weight": 24.38,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 124,
+    "row": 127,
+    "number": "43",
+    "quantity": 4,
+    "omvang": 1.67,
+    "hoogte": 0.97,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.7,
+    "calc_hoogte": 1.0,
+    "area": 6.8,
+    "total_price": 1300.0,
+    "weight": 48.42,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 43,
+    "page_str": "043"
+  },
+  {
+    "id": 125,
+    "row": 128,
+    "number": "43",
+    "quantity": 4,
+    "omvang": 0.53,
+    "hoogte": 0.53,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.56,
+    "calc_hoogte": 0.56,
+    "area": 1.2544,
+    "total_price": 246.34,
+    "weight": 8.93,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 43,
+    "page_str": "043"
+  },
+  {
+    "id": 126,
+    "row": 129,
+    "number": "44",
+    "quantity": 4,
+    "omvang": 0.63,
+    "hoogte": 1.1,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.66,
+    "calc_hoogte": 1.13,
+    "area": 2.9832,
+    "total_price": 574.81,
+    "weight": 21.24,
+    "verdieping": "2nd Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 88,
+    "page_str": "088"
+  },
+  {
+    "id": 127,
+    "row": 130,
+    "number": "44",
+    "quantity": 4,
+    "omvang": 0.2,
+    "hoogte": 0.2,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.23,
+    "calc_hoogte": 0.23,
+    "area": 0.2116,
+    "total_price": 48.2,
+    "weight": 1.51,
+    "verdieping": "2nd Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 88,
+    "page_str": "088"
+  },
+  {
+    "id": 128,
+    "row": 131,
+    "number": "45",
+    "quantity": 8,
+    "omvang": 0.36,
+    "hoogte": 0.16,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.39,
+    "calc_hoogte": 0.19,
+    "area": 0.5928,
+    "total_price": 128.63,
+    "weight": 4.22,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 129,
+    "row": 132,
+    "number": "46",
+    "quantity": 4,
+    "omvang": 0.53,
+    "hoogte": 1.32,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.56,
+    "calc_hoogte": 1.35,
+    "area": 3.024,
+    "total_price": 582.56,
+    "weight": 21.53,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/0",
+    "onderdoek": "N/A",
+    "page": 20,
+    "page_str": "020"
+  },
+  {
+    "id": 130,
+    "row": 133,
+    "number": "47",
+    "quantity": 8,
+    "omvang": 0.83,
+    "hoogte": 0.36,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.86,
+    "calc_hoogte": 0.39,
+    "area": 2.6832,
+    "total_price": 525.81,
+    "weight": 19.1,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 47,
+    "page_str": "047"
+  },
+  {
+    "id": 131,
+    "row": 134,
+    "number": "48",
+    "quantity": 8,
+    "omvang": 0.55,
+    "hoogte": 0.29,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.58,
+    "calc_hoogte": 0.32,
+    "area": 1.4848,
+    "total_price": 298.11,
+    "weight": 10.57,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 22,
+    "page_str": "022"
+  },
+  {
+    "id": 132,
+    "row": 135,
+    "number": "49",
+    "quantity": 8,
+    "omvang": 0.78,
+    "hoogte": 0.33,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.81,
+    "calc_hoogte": 0.36,
+    "area": 2.3328,
+    "total_price": 459.23,
+    "weight": 16.61,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 49,
+    "page_str": "049"
+  },
+  {
+    "id": 133,
+    "row": 136,
+    "number": "49",
+    "quantity": 8,
+    "omvang": 0.25,
+    "hoogte": 0.25,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.28,
+    "calc_hoogte": 0.28,
+    "area": 0.6272,
+    "total_price": 135.17,
+    "weight": 4.47,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 49,
+    "page_str": "049"
+  },
+  {
+    "id": 134,
+    "row": 137,
+    "number": "50",
+    "quantity": 2,
+    "omvang": 1.42,
+    "hoogte": 0.52,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.45,
+    "calc_hoogte": 0.55,
+    "area": 1.595,
+    "total_price": 307.05,
+    "weight": 11.36,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 135,
+    "row": 138,
+    "number": "50",
+    "quantity": 2,
+    "omvang": 0.45,
+    "hoogte": 0.45,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.48,
+    "calc_hoogte": 0.48,
+    "area": 0.4608,
+    "total_price": 91.55,
+    "weight": 3.28,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 136,
+    "row": 139,
+    "number": "51",
+    "quantity": 2,
+    "omvang": 1.76,
+    "hoogte": 0.81,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.79,
+    "calc_hoogte": 0.84,
+    "area": 3.0072,
+    "total_price": 575.37,
+    "weight": 21.41,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 137,
+    "row": 140,
+    "number": "51",
+    "quantity": 2,
+    "omvang": 0.56,
+    "hoogte": 0.56,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.59,
+    "calc_hoogte": 0.59,
+    "area": 0.6962,
+    "total_price": 136.28,
+    "weight": 4.96,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 138,
+    "row": 141,
+    "number": "52",
+    "quantity": 2,
+    "omvang": 1.3,
+    "hoogte": 0.41,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.33,
+    "calc_hoogte": 0.44,
+    "area": 1.1704,
+    "total_price": 226.38,
+    "weight": 8.33,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 52,
+    "page_str": "052"
+  },
+  {
+    "id": 139,
+    "row": 142,
+    "number": "53",
+    "quantity": 2,
+    "omvang": 1.71,
+    "hoogte": 0.71,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.74,
+    "calc_hoogte": 0.74,
+    "area": 2.5752,
+    "total_price": 493.29,
+    "weight": 18.34,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 140,
+    "row": 143,
+    "number": "54",
+    "quantity": 2,
+    "omvang": 1.92,
+    "hoogte": 0.95,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.95,
+    "calc_hoogte": 0.98,
+    "area": 3.822,
+    "total_price": 730.18,
+    "weight": 27.21,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 54,
+    "page_str": "054"
+  },
+  {
+    "id": 141,
+    "row": 144,
+    "number": "55",
+    "quantity": 2,
+    "omvang": 1.38,
+    "hoogte": 0.9,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.41,
+    "calc_hoogte": 0.93,
+    "area": 2.6226,
+    "total_price": 502.29,
+    "weight": 18.67,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 55,
+    "page_str": "055"
+  },
+  {
+    "id": 142,
+    "row": 145,
+    "number": "56",
+    "quantity": 2,
+    "omvang": 1.17,
+    "hoogte": 0.17,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.2,
+    "calc_hoogte": 0.2,
+    "area": 0.48,
+    "total_price": 95.2,
+    "weight": 3.42,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 56,
+    "page_str": "056"
+  },
+  {
+    "id": 143,
+    "row": 146,
+    "number": "56",
+    "quantity": 2,
+    "omvang": 0.37,
+    "hoogte": 0.37,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.4,
+    "calc_hoogte": 0.4,
+    "area": 0.32,
+    "total_price": 64.8,
+    "weight": 2.28,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 56,
+    "page_str": "056"
+  },
+  {
+    "id": 144,
+    "row": 147,
+    "number": "57",
+    "quantity": 4,
+    "omvang": 0.42,
+    "hoogte": 0.37,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.45,
+    "calc_hoogte": 0.4,
+    "area": 0.72,
+    "total_price": 144.8,
+    "weight": 5.13,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 145,
+    "row": 148,
+    "number": "57",
+    "quantity": 4,
+    "omvang": 0.13,
+    "hoogte": 0.13,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.16,
+    "calc_hoogte": 0.16,
+    "area": 0.1024,
+    "total_price": 27.46,
+    "weight": 0.73,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 57,
+    "page_str": "057"
+  },
+  {
+    "id": 146,
+    "row": 149,
+    "number": "58",
+    "quantity": 2,
+    "omvang": 0.32,
+    "hoogte": 0.15,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.35,
+    "calc_hoogte": 0.18,
+    "area": 0.126,
+    "total_price": 27.94,
+    "weight": 0.9,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 147,
+    "row": 150,
+    "number": "59",
+    "quantity": 2,
+    "omvang": 0.32,
+    "hoogte": 0.37,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.35,
+    "calc_hoogte": 0.4,
+    "area": 0.28,
+    "total_price": 57.2,
+    "weight": 1.99,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 59,
+    "page_str": "059"
+  },
+  {
+    "id": 148,
+    "row": 151,
+    "number": "60",
+    "quantity": 2,
+    "omvang": 0.57,
+    "hoogte": 0.22,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.6,
+    "calc_hoogte": 0.25,
+    "area": 0.3,
+    "total_price": 61.0,
+    "weight": 2.14,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 149,
+    "row": 152,
+    "number": "61",
+    "quantity": 2,
+    "omvang": 0.65,
+    "hoogte": 0.47,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.68,
+    "calc_hoogte": 0.5,
+    "area": 0.68,
+    "total_price": 133.2,
+    "weight": 4.84,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "be",
+    "onderdoek": "N/A",
+    "page": 3,
+    "page_str": "003"
+  },
+  {
+    "id": 150,
+    "row": 153,
+    "number": "61",
+    "quantity": 2,
+    "omvang": 0.2,
+    "hoogte": 0.2,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.23,
+    "calc_hoogte": 0.23,
+    "area": 0.1058,
+    "total_price": 24.1,
+    "weight": 0.75,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "be",
+    "onderdoek": "N/A",
+    "page": 3,
+    "page_str": "003"
+  },
+  {
+    "id": 151,
+    "row": 154,
+    "number": "62",
+    "quantity": 4,
+    "omvang": 0.15,
+    "hoogte": 0.09,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.18,
+    "calc_hoogte": 0.12,
+    "area": 0.0864,
+    "total_price": 24.42,
+    "weight": 0.62,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 58,
+    "page_str": "058"
+  },
+  {
+    "id": 152,
+    "row": 155,
+    "number": "63",
+    "quantity": 4,
+    "omvang": 0.74,
+    "hoogte": 0.54,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.77,
+    "calc_hoogte": 0.57,
+    "area": 1.7556,
+    "total_price": 341.56,
+    "weight": 12.5,
+    "verdieping": "2nd Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 88,
+    "page_str": "088"
+  },
+  {
+    "id": 153,
+    "row": 156,
+    "number": "63",
+    "quantity": 4,
+    "omvang": 0.24,
+    "hoogte": 0.24,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.27,
+    "calc_hoogte": 0.27,
+    "area": 0.2916,
+    "total_price": 63.4,
+    "weight": 2.08,
+    "verdieping": "2nd Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 88,
+    "page_str": "088"
+  },
+  {
+    "id": 154,
+    "row": 157,
+    "number": "64",
+    "quantity": 4,
+    "omvang": 0.82,
+    "hoogte": 0.51,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.85,
+    "calc_hoogte": 0.54,
+    "area": 1.836,
+    "total_price": 356.84,
+    "weight": 13.07,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 155,
+    "row": 158,
+    "number": "64",
+    "quantity": 4,
+    "omvang": 0.26,
+    "hoogte": 0.26,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.29,
+    "calc_hoogte": 0.29,
+    "area": 0.3364,
+    "total_price": 71.92,
+    "weight": 2.4,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "/56",
+    "onderdoek": "/56",
+    "page": 2,
+    "page_str": "002"
+  },
+  {
+    "id": 156,
+    "row": 159,
+    "number": "65",
+    "quantity": 4,
+    "omvang": 1.05,
+    "hoogte": 0.6,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.08,
+    "calc_hoogte": 0.63,
+    "area": 2.7216,
+    "total_price": 525.1,
+    "weight": 19.38,
+    "verdieping": "2nd Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 88,
+    "page_str": "088"
+  },
+  {
+    "id": 157,
+    "row": 160,
+    "number": "66",
+    "quantity": 4,
+    "omvang": 0.67,
+    "hoogte": 0.51,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.7,
+    "calc_hoogte": 0.54,
+    "area": 1.512,
+    "total_price": 295.28,
+    "weight": 10.77,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 158,
+    "row": 161,
+    "number": "66",
+    "quantity": 4,
+    "omvang": 0.21,
+    "hoogte": 0.21,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.24,
+    "calc_hoogte": 0.24,
+    "area": 0.2304,
+    "total_price": 51.78,
+    "weight": 1.64,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 159,
+    "row": 162,
+    "number": "67",
+    "quantity": 4,
+    "omvang": 0.67,
+    "hoogte": 0.62,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.7,
+    "calc_hoogte": 0.65,
+    "area": 1.82,
+    "total_price": 353.8,
+    "weight": 12.96,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 160,
+    "row": 163,
+    "number": "67",
+    "quantity": 4,
+    "omvang": 0.21,
+    "hoogte": 0.21,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.24,
+    "calc_hoogte": 0.24,
+    "area": 0.2304,
+    "total_price": 51.78,
+    "weight": 1.64,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "log",
+    "onderdoek": "N/A",
+    "page": 21,
+    "page_str": "021"
+  },
+  {
+    "id": 161,
+    "row": 164,
+    "number": "68",
+    "quantity": 2,
+    "omvang": 1.13,
+    "hoogte": 0.35,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.16,
+    "calc_hoogte": 0.38,
+    "area": 0.8816,
+    "total_price": 171.5,
+    "weight": 6.28,
+    "verdieping": "2 1/2 Floor",
+    "datum": "11-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 85,
+    "page_str": "085"
+  },
+  {
+    "id": 162,
+    "row": 165,
+    "number": "69",
+    "quantity": 2,
+    "omvang": 1.76,
+    "hoogte": 1.02,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.79,
+    "calc_hoogte": 1.05,
+    "area": 3.759,
+    "total_price": 718.21,
+    "weight": 26.76,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 163,
+    "row": 166,
+    "number": "69",
+    "quantity": 2,
+    "omvang": 0.56,
+    "hoogte": 0.56,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.59,
+    "calc_hoogte": 0.59,
+    "area": 0.6962,
+    "total_price": 136.28,
+    "weight": 4.96,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 53,
+    "page_str": "053"
+  },
+  {
+    "id": 164,
+    "row": 167,
+    "number": "70",
+    "quantity": 4,
+    "omvang": 1.92,
+    "hoogte": 0.72,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 1.95,
+    "calc_hoogte": 0.75,
+    "area": 5.85,
+    "total_price": 1119.5,
+    "weight": 41.65,
+    "verdieping": "Dak",
+    "datum": "09-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 4,
+    "page_str": "004"
+  },
+  {
+    "id": 165,
+    "row": 168,
+    "number": "73",
+    "quantity": 4,
+    "omvang": 0.17,
+    "hoogte": 0.61,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.2,
+    "calc_hoogte": 0.64,
+    "area": 0.512,
+    "total_price": 105.28,
+    "weight": 3.65,
+    "verdieping": "Dak",
+    "datum": "10-06-2026",
+    "inmeter": "Peter",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 36,
+    "page_str": "036"
+  },
+  {
+    "id": 166,
+    "row": 169,
+    "number": "74",
+    "quantity": 2,
+    "omvang": 0.73,
+    "hoogte": 0.26,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.76,
+    "calc_hoogte": 0.29,
+    "area": 0.4408,
+    "total_price": 87.75,
+    "weight": 3.14,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "/2",
+    "onderdoek": "N/A",
+    "page": 109,
+    "page_str": "109"
+  },
+  {
+    "id": 167,
+    "row": 170,
+    "number": "74",
+    "quantity": 2,
+    "omvang": 0.23,
+    "hoogte": 0.23,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.26,
+    "calc_hoogte": 0.26,
+    "area": 0.1352,
+    "total_price": 29.69,
+    "weight": 0.96,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "/2",
+    "onderdoek": "N/A",
+    "page": 109,
+    "page_str": "109"
+  },
+  {
+    "id": 168,
+    "row": 171,
+    "number": "75",
+    "quantity": 4,
+    "omvang": 0.41,
+    "hoogte": 0.22,
+    "gesp_haken": "N/A",
+    "location": "N/A",
+    "calc_omvang": 0.44,
+    "calc_hoogte": 0.25,
+    "area": 0.44,
+    "total_price": 91.6,
+    "weight": 3.13,
+    "verdieping": "Turbine Hall",
+    "datum": "12-06-2026",
+    "inmeter": "Ron",
+    "bovendoek": "N/A",
+    "onderdoek": "N/A",
+    "page": 108,
+    "page_str": "108"
+  }
+];
+
+        // State Management
+        let filteredData = [...rawData];
+        let currentPage = 1;
+        const rowsPerPage = 15;
+        let floorChartInstance = null;
+        let fastenerChartInstance = null;
+
+        // Elements
+        const tableBody = document.getElementById('table-body');
+        const searchInput = document.getElementById('search-input');
+        const filterVerdieping = document.getElementById('filter-verdieping');
+        const filterSluiting = document.getElementById('filter-sluiting');
+        const filterInmeter = document.getElementById('filter-inmeter');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const pageInfo = document.getElementById('page-info');
+
+        // Stats Elements
+        const statTotalQty = document.getElementById('stat-total-qty');
+        const statTotalArea = document.getElementById('stat-total-area');
+        const statTotalPrice = document.getElementById('stat-total-price');
+        const statTotalWeight = document.getElementById('stat-total-weight');
+
+        // Drawer Elements
+        const drawer = document.getElementById('detail-drawer');
+        const drawerOverlay = document.getElementById('drawer-overlay');
+        const btnCloseDrawer = document.getElementById('btn-close-drawer');
+        
+        // Drawing Elements
+        const drawingSection = document.getElementById('detail-drawing-section');
+        const drawingTitle = document.getElementById('detail-drawing-title');
+        const drawingImg = document.getElementById('detail-drawing-img');
+        const drawingBtn = document.getElementById('detail-drawing-btn');
+
+        // Initialize Options in dropdowns
+        function initFilters() {
+            const floors = [...new Set(rawData.map(item => item.verdieping))].filter(Boolean).sort();
+            const fasteners = [...new Set(rawData.map(item => item.gesp_haken))].filter(Boolean).sort();
+            const inmeters = [...new Set(rawData.map(item => item.inmeter))].filter(Boolean).sort();
+
+            floors.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = f;
+                filterVerdieping.appendChild(opt);
+            });
+
+            fasteners.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = f;
+                filterSluiting.appendChild(opt);
+            });
+
+            inmeters.forEach(i => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = i;
+                filterInmeter.appendChild(opt);
+            });
+        }
+
+        // Formatting Helpers
+        function formatEuro(num) {
+            return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(num);
+        }
+
+        function formatDecimal(num, decimals = 2) {
+            return new Intl.NumberFormat('nl-NL', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(num);
+        }
+
+        // Calculate and display stats
+        function updateStats() {
+            let qty = 0;
+            let area = 0.0;
+            let price = 0.0;
+            let weight = 0.0;
+
+            filteredData.forEach(item => {
+                qty += item.quantity;
+                area += item.area;
+                price += item.total_price;
+                weight += item.weight;
+            });
+
+            statTotalQty.textContent = qty + " stuks";
+            statTotalArea.textContent = formatDecimal(area, 2) + " m²";
+            statTotalPrice.textContent = formatEuro(price);
+            statTotalWeight.textContent = formatDecimal(weight, 2) + " kg";
+        }
+
+        // Render Table
+        function renderTable() {
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            tableBody.innerHTML = '';
+
+            if (pageData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 30px;">Geen resultaten gevonden</td></tr>';
+                pageInfo.textContent = 'Rij 0-0 van 0';
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
+                return;
+            }
+
+            pageData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.addEventListener('click', () => openDrawer(item));
+
+                const isTurbine = item.verdieping === 'Turbine Hall';
+                const badgeClass = isTurbine ? 'badge-turbine' : 'badge-location';
+
+                tr.innerHTML = `
+                    <td><strong>${item.number}</strong></td>
+                    <td>${item.quantity}</td>
+                    <td><span class="badge ${badgeClass}">${item.verdieping}</span></td>
+                    <td>${formatDecimal(item.omvang, 2)} m</td>
+                    <td>${formatDecimal(item.hoogte, 2)} m</td>
+                    <td><span class="badge badge-sluiting">${item.gesp_haken}</span></td>
+                    <td style="color: var(--text-secondary);">${item.bovendoek} / ${item.onderdoek}</td>
+                    <td>${formatDecimal(item.area, 3)} m²</td>
+                    <td>${formatDecimal(item.weight, 2)} kg</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            pageInfo.textContent = `Rij ${startIndex + 1}-${endIndex} van ${filteredData.length}`;
+            btnPrev.disabled = currentPage === 1;
+            btnNext.disabled = endIndex >= filteredData.length;
+        }
+
+        // Render Charts
+        function updateCharts() {
+            // Floor distribution
+            const floorsMap = {};
+            filteredData.forEach(item => {
+                floorsMap[item.verdieping] = (floorsMap[item.verdieping] || 0) + item.quantity;
+            });
+
+            const floorLabels = Object.keys(floorsMap);
+            const floorValues = Object.values(floorsMap);
+
+            if (floorChartInstance) floorChartInstance.destroy();
+            const ctxFloor = document.getElementById('floorChart').getContext('2d');
+            floorChartInstance = new Chart(ctxFloor, {
+                type: 'bar',
+                data: {
+                    labels: floorLabels,
+                    datasets: [{
+                        label: 'Aantal Matrassen',
+                        data: floorValues,
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#2563eb',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+
+            // Fasteners distribution
+            const fastenersMap = {};
+            filteredData.forEach(item => {
+                fastenersMap[item.gesp_haken] = (fastenersMap[item.gesp_haken] || 0) + item.quantity;
+            });
+
+            const fastLabels = Object.keys(fastenersMap);
+            const fastValues = Object.values(fastenersMap);
+
+            if (fastenerChartInstance) fastenerChartInstance.destroy();
+            const ctxFastener = document.getElementById('fastenerChart').getContext('2d');
+            fastenerChartInstance = new Chart(ctxFastener, {
+                type: 'doughnut',
+                data: {
+                    labels: fastLabels,
+                    datasets: [{
+                        data: fastValues,
+                        backgroundColor: ['#8b5cf6', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#94a3b8', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Filter and Search Logic
+        function applyFilters() {
+            const searchVal = searchInput.value.toLowerCase().trim();
+            const floorVal = filterVerdieping.value;
+            const sluitingVal = filterSluiting.value;
+            const inmeterVal = filterInmeter.value;
+
+            filteredData = rawData.filter(item => {
+                const matchSearch = item.number.toLowerCase().includes(searchVal);
+                const matchFloor = !floorVal || item.verdieping === floorVal;
+                const matchSluiting = !sluitingVal || item.gesp_haken === sluitingVal;
+                const matchInmeter = !inmeterVal || item.inmeter === inmeterVal;
+                return matchSearch && matchFloor && matchSluiting && matchInmeter;
+            });
+
+            currentPage = 1;
+            renderTable();
+            updateStats();
+            updateCharts();
+        }
+
+        // Drawer Operations
+        function openDrawer(item) {
+            document.getElementById('detail-number').textContent = "Matras #" + item.number;
+            document.getElementById('detail-qty').textContent = item.quantity + " stuks";
+            document.getElementById('detail-loc').textContent = item.location;
+            document.getElementById('detail-inmeter').textContent = item.inmeter;
+            document.getElementById('detail-datum').textContent = item.datum;
+            document.getElementById('detail-omvang').textContent = formatDecimal(item.omvang, 2) + " m";
+            document.getElementById('detail-hoogte').textContent = formatDecimal(item.hoogte, 2) + " m";
+            document.getElementById('detail-bovendoek').textContent = item.bovendoek;
+            document.getElementById('detail-onderdoek').textContent = item.onderdoek;
+            
+            document.getElementById('detail-calc-omvang').textContent = formatDecimal(item.calc_omvang, 2) + " m";
+            document.getElementById('detail-calc-hoogte').textContent = formatDecimal(item.calc_hoogte, 2) + " m";
+            document.getElementById('detail-area').textContent = formatDecimal(item.area, 3) + " m²";
+            document.getElementById('detail-weight').textContent = formatDecimal(item.weight, 2) + " kg";
+            document.getElementById('detail-price').textContent = formatEuro(item.total_price);
+
+            // Display matched page image
+            if (item.page && item.page_str) {
+                drawingTitle.textContent = `Technische Tekening (Pagina ${item.page})`;
+                const imgPath = `pdf_data/pages/page-${item.page_str}.png`;
+                drawingImg.src = imgPath;
+                drawingImg.style.display = 'block';
+                drawingSection.style.display = 'block';
+                
+                // Button click action
+                drawingBtn.onclick = () => {
+                    window.open(imgPath, '_blank');
+                };
+                drawingImg.onclick = () => {
+                    window.open(imgPath, '_blank');
+                };
+            } else {
+                drawingSection.style.display = 'none';
+            }
+
+            drawer.classList.add('open');
+            drawerOverlay.classList.add('active');
+        }
+
+        function closeDrawer() {
+            drawer.classList.remove('open');
+            drawerOverlay.classList.remove('active');
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', applyFilters);
+        filterVerdieping.addEventListener('change', applyFilters);
+        filterSluiting.addEventListener('change', applyFilters);
+        filterInmeter.addEventListener('change', applyFilters);
+
+        btnPrev.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+
+        btnNext.addEventListener('click', () => {
+            const maxPage = Math.ceil(filteredData.length / rowsPerPage);
+            if (currentPage < maxPage) {
+                currentPage++;
+                renderTable();
+            }
+        });
+
+        btnCloseDrawer.addEventListener('click', closeDrawer);
+        drawerOverlay.addEventListener('click', closeDrawer);
+
+        // Escape key to close drawer
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDrawer();
+        });
+
+        // Initialization
+        initFilters();
+        renderTable();
+        updateStats();
+        updateCharts();
+    </script>
+</body>
+</html>

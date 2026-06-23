@@ -1,0 +1,19 @@
+==================================================
+  LOSTOC FABRIC EXCEL ANALYSIS REPORT             
+==================================================
+Total Rows Processed: 168
+Total Quantity (Units): 773
+Total Area (m²): 357.3907
+Total Price (€): 69450.23
+Total Weight (kg): 2544.62
+
+Locations breakdown:
+  - N/A: 671 units
+  - Turbine Hall: 102 units
+
+Fasteners (Gesp/haken) breakdown:
+  - G/H: 311 units
+  - N/A: 212 units
+  - G: 166 units
+  - H: 76 units
+  - NO G&H: 8 units

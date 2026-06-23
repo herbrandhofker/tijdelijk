@@ -1,0 +1,189 @@
+Mijn conclusie: voor een softwareontwikkelaar of AI die patronen uit foto's wil genereren is dit een goede basis, maar voor jouw praktijk in de industriële isolatie is hij nog niet compleet genoeg.
+
+Wat ik goed vind
+
+✅ PDF-tekeningen met afmetingen.
+
+✅ Hoge resolutie foto's met een referentiemaat.
+
+✅ Foto's vanuit meerdere hoeken.
+
+✅ Overlap voor photogrammetry.
+
+✅ Gewenste isolatiedikte vermelden.
+
+Dat zijn allemaal belangrijke onderdelen.
+
+Wat ik mis (en wat ik woensdag zou eisen)
+1. Uniek matrasnummer
+
+Elke meting moet direct gekoppeld worden aan een uniek nummer.
+
+Bijvoorbeeld:
+
+LST-001
+LST-002
+LST-003
+
+Dat nummer moet later automatisch op:
+
+label
+QR-code
+snijbestand
+productiedossier
+
+terechtkomen.
+
+Dat bespaart enorm veel fouten.
+
+2. Materiaalkeuze
+
+AI moet weten:
+
+binnenstof
+buitenstof
+isolatiemateriaal
+temperatuurklasse
+ATEX ja/nee
+calciumvrij ja/nee
+waterafstotend ja/nee
+
+Anders kan het juiste matras niet worden gegenereerd.
+
+3. Type bevestiging
+
+Jij werkt met:
+
+haken
+banden
+gespen
+D-ringen
+C-ringen
+veter
+draad
+
+Dat moet vooraf worden ingevoerd.
+
+4. Positie van naden
+
+Voor onderhoud is de plaats van de opening cruciaal.
+
+Bijvoorbeeld:
+
+naad boven
+naad onder
+links
+rechts
+
+Dat kan AI niet uit een foto afleiden.
+
+5. Obstakels
+
+Bijvoorbeeld:
+
+aftakkingen
+thermokoppels
+drukmeters
+supports
+kabelgoten
+flenzen
+hijsogen
+
+Die moeten apart worden gemarkeerd.
+
+6. Krimpmaten
+
+Jij gebruikt een eigen systeem waarbij uitsparingen worden berekend.
+
+Dat is een van de belangrijkste onderdelen van jouw productieproces.
+
+AI moet weten:
+
+breedte uitsparing
+hoogte
+driehoekhoogte
+halve hoekja/nee
+
+Anders ontstaat een slecht passend matras.
+
+7. Dikte-opbouw
+
+Bijvoorbeeld:
+
+50 mm
+75 mm
+100 mm
+dubbellaags
+meerlaags
+
+Met de bijbehorende berekeningsformules voor de snijmaat.
+
+8. Flensmethode
+
+Bij appendages moet AI weten:
+
+losse kap
+scharnierende kap
+tweedelig
+driedelig
+vierdelig
+
+Dit bepaalt het patroon volledig.
+
+9. Productiegegevens
+
+Automatisch genereren:
+
+snijbestand Zünd
+tekenlaag geel
+snijlaag blauw
+stikvolgorde
+vulvolgorde
+labelpositie
+barcode
+paklijst
+
+Dat sluit direct aan op jullie productie.
+
+10. Montagevolgorde
+
+Bij projecten zoals Lostock of Riverside zou AI automatisch moeten weten:
+
+palletnummer
+sectie
+verdieping
+area
+montagevolgorde
+prioriteit
+
+Dat voorkomt veel zoekwerk op locatie.
+
+Mijn grootste aanvulling
+
+Ik zou AI niet alleen foto's laten analyseren, maar een digitaal inmeetformulier laten invullen waarin de inmeter per matras vastlegt:
+
+matrasnummer
+omvang
+hoogte
+dikte
+bevestiging
+stofsoort
+bijzonderheden
+foto's
+locatie
+GPS/ruimte
+projectnaam
+
+Daarna laat je AI automatisch:
+
+de uitslag berekenen;
+het DXF-bestand maken;
+de Zünd-snijlijnen genereren;
+het label met QR-code aanmaken;
+de stuklijst opstellen;
+de productieplanning bijwerken.
+Mijn beoordeling
+Checklist uit het document: 7/10 – prima voor algemene patroonontwikkeling.
+Checklist voor SIB/Cleansulation en jouw geautomatiseerde productieproces: 9,8/10 na toevoeging van bovenstaande punten.
+
+Met die uitbreidingen leg je de basis voor een vrijwel volledig geautomatiseerde workflow van inmeten tot snijden, labelen en montere

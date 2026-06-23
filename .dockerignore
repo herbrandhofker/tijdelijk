@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv
+node_modules
+*.py
+*.txt
+org.xlsx
+ron_checklist.pdf
+werkrapportage_ron.md
+.agents
+*.log

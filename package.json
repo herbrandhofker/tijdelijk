@@ -1,0 +1,14 @@
+{
+  "name": "sib-isolatie-dashboard",
+  "version": "1.0.0",
+  "description": "Interactive Dashboard for SIB Isolatie Mattress Data",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Antigravity",
+  "license": "ISC"
+}
